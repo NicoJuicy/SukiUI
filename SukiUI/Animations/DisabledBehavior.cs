@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using SukiUI.Helpers;
+using Avalonia.Animation.Easings;
 
 namespace SukiUI.Animations;
 
@@ -72,6 +73,7 @@ public static class DisabledBehavior
             .From(control.Opacity)
             .To(customOpacity.Value)
             .WithDuration(TimeSpan.FromMilliseconds(AnimationDurationMs))
+            .WithEasing(new CubicEaseInOut())
             .Start();
     }
 
@@ -84,6 +86,7 @@ public static class DisabledBehavior
             .From(control.Opacity)
             .To(originalOpacity)
             .WithDuration(TimeSpan.FromMilliseconds(AnimationDurationMs))
+            .WithEasing(new CubicEaseInOut())
             .Start();
         
         _originalOpacities.Remove(control);
@@ -107,12 +110,14 @@ public static class DisabledBehavior
             .From(scaleTransform.ScaleX)
             .To(customScale.Value)
             .WithDuration(TimeSpan.FromMilliseconds(AnimationDurationMs))
+            .WithEasing(new CubicEaseInOut())
             .Start();
         
         ((Visual)control).Animate(ScaleTransform.ScaleYProperty)
             .From(scaleTransform.ScaleY)
             .To(customScale.Value)
             .WithDuration(TimeSpan.FromMilliseconds(AnimationDurationMs))
+            .WithEasing(new CubicEaseInOut())
             .Start();
     }
     
@@ -129,12 +134,14 @@ public static class DisabledBehavior
             .From(scaleTransform.ScaleX)
             .To(originalScale)
             .WithDuration(TimeSpan.FromMilliseconds(AnimationDurationMs))
+            .WithEasing(new CubicEaseInOut())
             .Start();
         
         ((Visual)control).Animate(ScaleTransform.ScaleYProperty)
             .From(scaleTransform.ScaleY)
             .To(originalScale)
             .WithDuration(TimeSpan.FromMilliseconds(AnimationDurationMs))
+            .WithEasing(new CubicEaseInOut())
             .Start();
         
         _originalScales.Remove(control);
