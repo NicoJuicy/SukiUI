@@ -11,7 +11,7 @@ using SukiUI.Helpers;
 
 namespace SukiUI.Animations;
 
-public static class ShowBusyArea
+public static class LoadingBehavior
 {
     private const int AnimationDurationMs = 200;
 
@@ -21,16 +21,16 @@ public static class ShowBusyArea
     public static readonly AttachedProperty<bool> IsBusyProperty =
         AvaloniaProperty.RegisterAttached<Control, bool>(
             "IsBusy",
-            typeof(ShowBusyArea),
+            typeof(LoadingBehavior),
             defaultValue: false);
 
     public static readonly AttachedProperty<double> DimOpacityProperty =
         AvaloniaProperty.RegisterAttached<Control, double>(
             "DimOpacity",
-            typeof(ShowBusyArea),
+            typeof(LoadingBehavior),
             defaultValue: 0.3);
 
-    static ShowBusyArea()
+    static LoadingBehavior()
     {
         IsBusyProperty.Changed.AddClassHandler<Control>(OnIsBusyChanged);
     }
@@ -189,5 +189,7 @@ public static class ShowBusyArea
         {
             popup.IsOpen = false;
         }
+        
+        
     }
 }

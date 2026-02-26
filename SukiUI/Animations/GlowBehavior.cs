@@ -8,7 +8,7 @@ using SukiUI.Helpers;
 
 namespace SukiUI.Animations;
 
-public static class AnimateContour
+public static class GlowBehavior
 {
     private const int AnimationDurationMs = 200;
 
@@ -17,34 +17,34 @@ public static class AnimateContour
     public static readonly AttachedProperty<bool> IsActiveProperty =
         AvaloniaProperty.RegisterAttached<Control, bool>(
             "IsActive",
-            typeof(AnimateContour),
+            typeof(GlowBehavior),
             defaultValue: false);
 
     public static readonly AttachedProperty<Color> ColorProperty =
         AvaloniaProperty.RegisterAttached<Control, Color>(
             "Color",
-            typeof(AnimateContour),
+            typeof(GlowBehavior),
             defaultValue: Colors.DodgerBlue);
 
     public static readonly AttachedProperty<double> ThicknessProperty =
         AvaloniaProperty.RegisterAttached<Control, double>(
             "Thickness",
-            typeof(AnimateContour),
+            typeof(GlowBehavior),
             defaultValue: 2);
 
     public static readonly AttachedProperty<int> SpeedProperty =
         AvaloniaProperty.RegisterAttached<Control, int>(
             "Speed",
-            typeof(AnimateContour),
+            typeof(GlowBehavior),
             defaultValue: 2000);
 
     public static readonly AttachedProperty<CornerRadius> CornerRadiusProperty =
         AvaloniaProperty.RegisterAttached<Control, CornerRadius>(
             "CornerRadius",
-            typeof(AnimateContour),
+            typeof(GlowBehavior),
             defaultValue: new CornerRadius(13));
 
-    static AnimateContour()
+    static GlowBehavior()
     {
         IsActiveProperty.Changed.AddClassHandler<Control>(OnIsActiveChanged);
     }
