@@ -15,7 +15,7 @@ public static class LoadingBehavior
 {
     private const int AnimationDurationMs = 200;
 
-    private static readonly Dictionary<Control, Popup> _popups = new();
+    private static readonly Dictionary<Control, PopupData> _popups = new();
     private static readonly Dictionary<Control, double> _originalOpacities = new();
 
     public static readonly AttachedProperty<bool> IsBusyProperty =
@@ -109,7 +109,7 @@ public static class LoadingBehavior
         var popup = new Popup
         {
             PlacementTarget = control,
-            Placement = PlacementMode.Center,
+            Placement = PlacementMode.AnchorAndGravity,
             IsLightDismissEnabled = false,
             Child = loading
         };
@@ -127,7 +127,13 @@ public static class LoadingBehavior
                 .RunAsync();
         };
 
-        _popups[control] = popup;
+        var scrollViewer = control.FindAncestorOfType<ScrollViewer>();
+        if (scrollViewer != null)
+        {
+            scrollViewer.ScrollChanged += OnScrollChanged;
+        }
+
+        _popups[control] = new PopupData(popup, scrollViewer);
 
         control.AttachedToVisualTree += OnControlAttachedToVisualTree;
         control.DetachedFromVisualTree += OnControlDetachedFromVisualTree;
@@ -152,7 +158,7 @@ public static class LoadingBehavior
         _originalOpacities.Remove(control);
         control.IsHitTestVisible = true;
 
-        if (_popups.TryGetValue(control, out var popup) && popup.Child is Loading loading)
+        if (_popups.TryGetValue(control, out var popupData) && popupData.Popup.Child is Loading loading)
         {
             await loading.Animate(Visual.OpacityProperty)
                 .From(1)
@@ -160,9 +166,15 @@ public static class LoadingBehavior
                 .WithDuration(TimeSpan.FromMilliseconds(AnimationDurationMs))
                 .RunAsync();
 
-            popup.IsOpen = false;
-            popup.Child = null;
-            ((ISetLogicalParent)popup).SetParent(null);
+            popupData.Popup.IsOpen = false;
+            popupData.Popup.Child = null;
+            ((ISetLogicalParent)popupData.Popup).SetParent(null);
+
+            if (popupData.ScrollViewer != null)
+            {
+                popupData.ScrollViewer.ScrollChanged -= OnScrollChanged;
+            }
+
             _popups.Remove(control);
         }
 
@@ -175,9 +187,9 @@ public static class LoadingBehavior
         if (sender is not Control control) return;
         if (!GetIsBusy(control)) return;
 
-        if (_popups.TryGetValue(control, out var popup) && !popup.IsOpen)
+        if (_popups.TryGetValue(control, out var popupData) && !popupData.Popup.IsOpen)
         {
-            popup.IsOpen = true;
+            popupData.Popup.IsOpen = true;
         }
     }
 
@@ -185,11 +197,27 @@ public static class LoadingBehavior
     {
         if (sender is not Control control) return;
 
-        if (_popups.TryGetValue(control, out var popup))
+        if (_popups.TryGetValue(control, out var popupData))
         {
-            popup.IsOpen = false;
+            popupData.Popup.IsOpen = false;
         }
-        
-        
     }
+
+    private static void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (sender is not ScrollViewer scrollViewer) return;
+
+        foreach (var kvp in _popups)
+        {
+            if (kvp.Value.ScrollViewer == scrollViewer && kvp.Value.Popup.IsOpen)
+            {
+                var popup = kvp.Value.Popup;
+                var placement = popup.Placement;
+                popup.Placement = PlacementMode.Center;
+                popup.Placement = placement;
+            }
+        }
+    }
+
+    private record PopupData(Popup Popup, ScrollViewer? ScrollViewer);
 }

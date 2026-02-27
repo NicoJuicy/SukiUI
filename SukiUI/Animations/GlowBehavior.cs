@@ -176,7 +176,13 @@ public static class GlowBehavior
             timer.Start();
         };
 
-        _popups[control] = new PopupData(popup, timer);
+        var scrollViewer = control.FindAncestorOfType<ScrollViewer>();
+        if (scrollViewer != null)
+        {
+            scrollViewer.ScrollChanged += OnScrollChanged;
+        }
+
+        _popups[control] = new PopupData(popup, timer, scrollViewer);
 
         control.AttachedToVisualTree += OnControlAttachedToVisualTree;
         control.DetachedFromVisualTree += OnControlDetachedFromVisualTree;
@@ -205,6 +211,12 @@ public static class GlowBehavior
             popup.IsOpen = false;
             popup.Child = null;
             ((ISetLogicalParent)popup).SetParent(null);
+
+            if (popupData.ScrollViewer != null)
+            {
+                popupData.ScrollViewer.ScrollChanged -= OnScrollChanged;
+            }
+
             _popups.Remove(control);
         }
 
@@ -234,5 +246,21 @@ public static class GlowBehavior
         }
     }
 
-    private record PopupData(Popup Popup, DispatcherTimer Timer);
+    private static void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (sender is not ScrollViewer scrollViewer) return;
+
+        foreach (var kvp in _popups)
+        {
+            if (kvp.Value.ScrollViewer == scrollViewer && kvp.Value.Popup.IsOpen)
+            {
+                var popup = kvp.Value.Popup;
+                var placement = popup.Placement;
+                popup.Placement = PlacementMode.AnchorAndGravity;
+                popup.Placement = placement;
+            }
+        }
+    }
+
+    private record PopupData(Popup Popup, DispatcherTimer Timer, ScrollViewer? ScrollViewer);
 }

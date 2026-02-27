@@ -276,7 +276,13 @@ public static class ErrorBehavior
             timer.Start();
         };
 
-        _popups[control] = new PopupData(popup, timer);
+        var scrollViewer = control.FindAncestorOfType<ScrollViewer>();
+        if (scrollViewer != null)
+        {
+            scrollViewer.ScrollChanged += OnScrollChanged;
+        }
+
+        _popups[control] = new PopupData(popup, timer, scrollViewer);
 
         control.AttachedToVisualTree += OnControlAttachedToVisualTree;
         control.DetachedFromVisualTree += OnControlDetachedFromVisualTree;
@@ -306,6 +312,11 @@ public static class ErrorBehavior
             popup.Child = null;
             ((ISetLogicalParent)popup).SetParent(null);
             _popups.Remove(control);
+        }
+
+        if (popupData.ScrollViewer != null)
+        {
+            popupData.ScrollViewer.ScrollChanged -= OnScrollChanged;
         }
 
         if (_originalOpacities.TryGetValue(control, out var originalOpacity))
@@ -346,5 +357,21 @@ public static class ErrorBehavior
         }
     }
 
-    private record PopupData(Popup Popup, DispatcherTimer Timer);
+    private static void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (sender is not ScrollViewer scrollViewer) return;
+
+        foreach (var kvp in _popups)
+        {
+            if (kvp.Value.ScrollViewer == scrollViewer && kvp.Value.Popup.IsOpen)
+            {
+                var popup = kvp.Value.Popup;
+                var placement = popup.Placement;
+                popup.Placement = PlacementMode.AnchorAndGravity;
+                popup.Placement = placement;
+            }
+        }
+    }
+
+    private record PopupData(Popup Popup, DispatcherTimer Timer, ScrollViewer? ScrollViewer);
 }
